@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
-#include <stdatomic.h>
 
 #define LINE_WIDTH 2
 
@@ -22,8 +21,7 @@ screen_width;
 
 int screen_height;
 
-atomic_int
-should_exit = 0;
+int should_exit = 0;
 
 /* funcs */
 
@@ -99,7 +97,7 @@ create_overlay_window() {
     overlay_window = XCreateWindow(display, root,
                                   0, 0, screen_width, screen_height, 0,
                                   CopyFromParent, InputOutput, CopyFromParent,
-                                  CWOverrideRedirect | CWBackPixel | CWEventMask, 
+                                  CWOverrideRedirect | CWBackPixel | CWEventMask,
                                   &attrs);
 
     Pixmap mask = XCreatePixmap(display, overlay_window, screen_width, screen_height, 1);
@@ -137,7 +135,7 @@ main() {
 
     printf("Crosshair overlay started\n");
     printf("Center coordinates: %dx%d\n", screen_width/2, screen_height/2);
-    printf("Press Ctrl+Q anywhere to exit\n");
+    printf("Press 'ctrl+q' anywhere to exit\n");
 
     XEvent event;
     while (!should_exit) {
