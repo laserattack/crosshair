@@ -6,13 +6,19 @@ A lightweight overlay tool that displays a red crosshair over all windows on X11
 
 # Quick Start
 
-compile:
+## Required
+- X11 development libraries
+- Xext development libraries
+
+## Сompile and start:
+
+in repo root
 
 ```bash
 make
 ```
 
-run:
+and run it:
 
 ```bash
 ./crosshair
