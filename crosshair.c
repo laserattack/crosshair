@@ -43,7 +43,7 @@ void
 check_global_hotkey(XEvent *event) {
     if (event->type == KeyPress) {
         KeySym keysym = XLookupKeysym(&event->xkey, 0);
-        
+
         if ((event->xkey.state & ControlMask) && 
             (keysym == XStringToKeysym("q") || keysym == XStringToKeysym("Q"))) {
             should_exit = 1;
@@ -54,13 +54,13 @@ check_global_hotkey(XEvent *event) {
 void
 draw_red_crosshair() {
     GC gc = XCreateGC(display, overlay_window, 0, NULL);
-    
+
     XColor color;
     Colormap colormap = DefaultColormap(display, DefaultScreen(display));
     XParseColor(display, colormap, "red", &color);
     XAllocColor(display, colormap, &color);
     XSetForeground(display, gc, color.pixel);
-    
+
     XSetLineAttributes(display, gc, LINE_WIDTH, LineSolid, CapRound, JoinRound);
 
     XDrawLine(display, overlay_window, gc,
@@ -126,7 +126,8 @@ create_overlay_window() {
     XFlush(display);
 }
 
-int main() {
+int
+main() {
     signal(SIGINT, cleanup);
     signal(SIGTERM, cleanup);
 
