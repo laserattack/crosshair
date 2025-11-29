@@ -79,7 +79,6 @@ create_overlay_window() {
 
     /* apply mask */
     XShapeCombineMask(display, overlay_window, ShapeBounding, 0, 0, mask, ShapeSet);
-    XShapeCombineMask(display, overlay_window, ShapeInput, 0, 0, mask, ShapeSet);
 
     /* cleanup */
     XFreePixmap(display, mask);
