@@ -87,8 +87,6 @@ create_overlay_window() {
     screen_width = DisplayWidth(display, screen);
     screen_height = DisplayHeight(display, screen);
 
-    printf("Screen size: %dx%d\n", screen_width, screen_height);
-
     XSetWindowAttributes attrs;
     attrs.override_redirect = True;
     attrs.background_pixel = 0;
@@ -100,32 +98,39 @@ create_overlay_window() {
                                   CWOverrideRedirect | CWBackPixel | CWEventMask,
                                   &attrs);
 
+    /* create mask */
     Pixmap mask = XCreatePixmap(display, overlay_window, screen_width, screen_height, 1);
     GC mask_gc = XCreateGC(display, mask, 0, NULL);
 
+    /* all windows transparent */
     XSetForeground(display, mask_gc, 0);
     XFillRectangle(display, mask, mask_gc, 0, 0, screen_width, screen_height);
 
+    /* crosshair no transparent */
     XSetForeground(display, mask_gc, 1);
     XFillRectangle(display, mask, mask_gc,
                    screen_width/2 - LINE_WIDTH/2, 0, LINE_WIDTH, screen_height);
     XFillRectangle(display, mask, mask_gc,
                    0, screen_height/2 - LINE_WIDTH/2, screen_width, LINE_WIDTH);
 
+    /* apply mask to window */
     XShapeCombineMask(display, overlay_window, ShapeBounding, 0, 0, mask, ShapeSet);
 
+    /* cleanup */
     XFreePixmap(display, mask);
     XFreeGC(display, mask_gc);
 
-    XMapWindow(display, overlay_window);
+    XMapWindow(display, overlay_window); /* display window */
 
     draw_red_crosshair();
 
-    XFlush(display);
+    XFlush(display); /* apply all */
 }
 
 int
 main() {
+    XEvent event;
+
     signal(SIGINT, cleanup);
     signal(SIGTERM, cleanup);
 
@@ -134,10 +139,10 @@ main() {
     register_global_hotkey();
 
     printf("Crosshair overlay started\n");
+    printf("Screen size: %dx%d\n", screen_width, screen_height);
     printf("Center coordinates: %dx%d\n", screen_width/2, screen_height/2);
     printf("Press 'ctrl+q' anywhere to exit\n");
 
-    XEvent event;
     while (!should_exit) {
         if (XPending(display)) {
             XNextEvent(display, &event);
