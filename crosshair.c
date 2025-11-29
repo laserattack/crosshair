@@ -52,7 +52,7 @@ check_global_hotkey(XEvent *event) {
 }
 
 void
-draw_red_crosshair() {
+draw_crosshair() {
     GC gc = XCreateGC(g_display, g_overlay_window, 0, NULL);
 
     XColor color;
@@ -124,7 +124,7 @@ create_overlay_window() {
 
     XMapWindow(g_display, g_overlay_window); /* display window */
 
-    draw_red_crosshair();
+    draw_crosshair();
 
     XFlush(g_display); /* apply all */
 }
@@ -150,7 +150,7 @@ main() {
             XNextEvent(g_display, &event);
             
             if (event.type == Expose) {
-                draw_red_crosshair();
+                draw_crosshair();
             } else if (event.type == KeyPress) {
                 check_global_hotkey(&event);
             }
