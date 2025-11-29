@@ -4,7 +4,7 @@ A lightweight overlay tool that displays a red crosshair over all windows on X11
 
 ![crosshair](crosshair.gif)
 
-## Quick Start
+# Quick Start
 
 compile:
 
