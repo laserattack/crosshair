@@ -11,29 +11,31 @@
 /* global vars */
 
 Display
-*display = NULL;
+*g_display = NULL;
 
 Window
-overlay_window;
+g_overlay_window;
 
 int
-screen_width;
+g_screen_width;
 
-int screen_height;
+int
+g_screen_height;
 
-int should_exit = 0;
+int
+g_should_exit = 0;
 
 /* funcs */
 
 void
 cleanup(int sig) {
-    should_exit = 1;
+    g_should_exit = 1;
 }
 
 void
 register_global_hotkey() {
-    KeyCode q_key = XKeysymToKeycode(display, XStringToKeysym("Q"));
-    XGrabKey(display, q_key, ControlMask, DefaultRootWindow(display),
+    KeyCode q_key = XKeysymToKeycode(g_display, XStringToKeysym("Q"));
+    XGrabKey(g_display, q_key, ControlMask, DefaultRootWindow(g_display),
              True, GrabModeAsync, GrabModeAsync);
 }
 
@@ -44,87 +46,87 @@ check_global_hotkey(XEvent *event) {
 
         if ((event->xkey.state & ControlMask) && 
             (keysym == XStringToKeysym("q") || keysym == XStringToKeysym("Q"))) {
-            should_exit = 1;
+            g_should_exit = 1;
         }
     }
 }
 
 void
 draw_red_crosshair() {
-    GC gc = XCreateGC(display, overlay_window, 0, NULL);
+    GC gc = XCreateGC(g_display, g_overlay_window, 0, NULL);
 
     XColor color;
-    Colormap colormap = DefaultColormap(display, DefaultScreen(display));
-    XParseColor(display, colormap, "red", &color);
-    XAllocColor(display, colormap, &color);
-    XSetForeground(display, gc, color.pixel);
+    Colormap colormap = DefaultColormap(g_display, DefaultScreen(g_display));
+    XParseColor(g_display, colormap, "red", &color);
+    XAllocColor(g_display, colormap, &color);
+    XSetForeground(g_display, gc, color.pixel);
 
-    XSetLineAttributes(display, gc, LINE_WIDTH, LineSolid, CapRound, JoinRound);
+    XSetLineAttributes(g_display, gc, LINE_WIDTH, LineSolid, CapRound, JoinRound);
 
-    XDrawLine(display, overlay_window, gc,
-              screen_width/2, 0,
-              screen_width/2, screen_height);
+    XDrawLine(g_display, g_overlay_window, gc,
+              g_screen_width/2, 0,
+              g_screen_width/2, g_screen_height);
 
-    XDrawLine(display, overlay_window, gc,
-              0, screen_height/2,
-              screen_width, screen_height/2);
+    XDrawLine(g_display, g_overlay_window, gc,
+              0, g_screen_height/2,
+              g_screen_width, g_screen_height/2);
 
-    XFreeGC(display, gc);
-    XFlush(display);
+    XFreeGC(g_display, gc);
+    XFlush(g_display);
 }
 
 void
 create_overlay_window() {
-    display = XOpenDisplay(NULL);
-    if (!display) {
+    g_display = XOpenDisplay(NULL);
+    if (!g_display) {
         fprintf(stderr, "Cannot open display\n");
         exit(1);
     }
 
-    int screen = DefaultScreen(display);
-    Window root = RootWindow(display, screen);
+    int screen = DefaultScreen(g_display);
+    Window root = RootWindow(g_display, screen);
 
-    screen_width = DisplayWidth(display, screen);
-    screen_height = DisplayHeight(display, screen);
+    g_screen_width = DisplayWidth(g_display, screen);
+    g_screen_height = DisplayHeight(g_display, screen);
 
     XSetWindowAttributes attrs;
     attrs.override_redirect = True;
     attrs.background_pixel = 0;
     attrs.event_mask = ExposureMask | KeyPressMask;
 
-    overlay_window = XCreateWindow(display, root,
-                                  0, 0, screen_width, screen_height, 0,
+    g_overlay_window = XCreateWindow(g_display, root,
+                                  0, 0, g_screen_width, g_screen_height, 0,
                                   CopyFromParent, InputOutput, CopyFromParent,
                                   CWOverrideRedirect | CWBackPixel | CWEventMask,
                                   &attrs);
 
     /* create mask */
-    Pixmap mask = XCreatePixmap(display, overlay_window, screen_width, screen_height, 1);
-    GC mask_gc = XCreateGC(display, mask, 0, NULL);
+    Pixmap mask = XCreatePixmap(g_display, g_overlay_window, g_screen_width, g_screen_height, 1);
+    GC mask_gc = XCreateGC(g_display, mask, 0, NULL);
 
     /* all windows transparent */
-    XSetForeground(display, mask_gc, 0);
-    XFillRectangle(display, mask, mask_gc, 0, 0, screen_width, screen_height);
+    XSetForeground(g_display, mask_gc, 0);
+    XFillRectangle(g_display, mask, mask_gc, 0, 0, g_screen_width, g_screen_height);
 
     /* crosshair no transparent */
-    XSetForeground(display, mask_gc, 1);
-    XFillRectangle(display, mask, mask_gc,
-                   screen_width/2 - LINE_WIDTH/2, 0, LINE_WIDTH, screen_height);
-    XFillRectangle(display, mask, mask_gc,
-                   0, screen_height/2 - LINE_WIDTH/2, screen_width, LINE_WIDTH);
+    XSetForeground(g_display, mask_gc, 1);
+    XFillRectangle(g_display, mask, mask_gc,
+                   g_screen_width/2 - LINE_WIDTH/2, 0, LINE_WIDTH, g_screen_height);
+    XFillRectangle(g_display, mask, mask_gc,
+                   0, g_screen_height/2 - LINE_WIDTH/2, g_screen_width, LINE_WIDTH);
 
     /* apply mask to window */
-    XShapeCombineMask(display, overlay_window, ShapeBounding, 0, 0, mask, ShapeSet);
+    XShapeCombineMask(g_display, g_overlay_window, ShapeBounding, 0, 0, mask, ShapeSet);
 
     /* cleanup */
-    XFreePixmap(display, mask);
-    XFreeGC(display, mask_gc);
+    XFreePixmap(g_display, mask);
+    XFreeGC(g_display, mask_gc);
 
-    XMapWindow(display, overlay_window); /* display window */
+    XMapWindow(g_display, g_overlay_window); /* display window */
 
     draw_red_crosshair();
 
-    XFlush(display); /* apply all */
+    XFlush(g_display); /* apply all */
 }
 
 int
@@ -139,13 +141,13 @@ main() {
     register_global_hotkey();
 
     printf("Crosshair overlay started\n");
-    printf("Screen size: %dx%d\n", screen_width, screen_height);
-    printf("Center coordinates: %dx%d\n", screen_width/2, screen_height/2);
+    printf("Screen size: %dx%d\n", g_screen_width, g_screen_height);
+    printf("Center coordinates: %dx%d\n", g_screen_width/2, g_screen_height/2);
     printf("Press 'ctrl+q' anywhere to exit\n");
 
-    while (!should_exit) {
-        if (XPending(display)) {
-            XNextEvent(display, &event);
+    while (!g_should_exit) {
+        if (XPending(g_display)) {
+            XNextEvent(g_display, &event);
             
             if (event.type == Expose) {
                 draw_red_crosshair();
@@ -157,9 +159,9 @@ main() {
         }
     }
 
-    if (display) {
-        XDestroyWindow(display, overlay_window);
-        XCloseDisplay(display);
+    if (g_display) {
+        XDestroyWindow(g_display, g_overlay_window);
+        XCloseDisplay(g_display);
         printf("Cleanup completed. Exiting...\n");
     }
 
