@@ -8,11 +8,24 @@
 
 #define LINE_WIDTH 2
 
-Display *display = NULL;
-Window overlay_window;
-int screen_width, screen_height;
+/* global vars */
 
-void cleanup(int sig) {
+Display
+*display = NULL;
+
+Window
+overlay_window;
+
+int
+screen_width;
+
+int
+screen_height;
+
+/* funcs */
+
+void
+cleanup(int sig) {
     if (display) {
         XDestroyWindow(display, overlay_window);
         XCloseDisplay(display);
@@ -20,7 +33,8 @@ void cleanup(int sig) {
     exit(0);
 }
 
-void create_overlay_window() {
+void
+create_overlay_window() {
     display = XOpenDisplay(NULL);
     if (!display) {
         fprintf(stderr, "Cannot open display\n");
@@ -76,7 +90,8 @@ void create_overlay_window() {
     XFlush(display);                       /* apply all */
 }
 
-void draw_crosshair() {
+void
+draw_crosshair() {
     GC gc = XCreateGC(display, overlay_window, 0, NULL);
 
     XColor color;
@@ -94,13 +109,12 @@ void draw_crosshair() {
               0, screen_height/2,
               screen_width, screen_height/2);
 
-    /* cleanup */
-    XFreeGC(display, gc);
-
-    XFlush(display); /* apply all */
+    XFreeGC(display, gc); /* cleanup */
+    XFlush(display);      /* apply all */
 }
 
-int main() {
+int
+main() {
     signal(SIGINT, cleanup);
     signal(SIGTERM, cleanup);
 
